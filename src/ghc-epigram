@@ -1,0 +1,1 @@
+ghc -O2 -package lang -fglasgow-exts -fallow-overlapping-instances -fallow-undecidable-instances --make Main.lhs -o Epigram-bin

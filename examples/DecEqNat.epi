@@ -1,0 +1,78 @@
+------------------------------------------------------------------------------
+include Nat
+------------------------------------------------------------------------------
+include Eq
+------------------------------------------------------------------------------
+include Color
+------------------------------------------------------------------------------
+     (    n : Nat     !                        
+let  !----------------!                        
+     ! double n : Nat )                        
+                                               
+     double n <= rec n                         
+     { double x <= case x                      
+       { double zero => zero                   
+         double (suc n) => suc (suc (double n))
+       }                                       
+     }                                         
+------------------------------------------------------------------------------
+inspect double (suc (suc zero)) => suc (suc (suc (suc zero))) : Nat
+------------------------------------------------------------------------------
+     (   n : Nat    !                        
+let  !--------------!                        
+     ! half n : Nat )                        
+                                             
+     half n <= rec n                         
+     { half x <= case x                      
+       { half zero => zero                   
+         half (suc n) <= case n              
+         { half (suc zero) => zero           
+           half (suc (suc n)) => suc (half n)
+         }                                   
+       }                                     
+     }                                       
+------------------------------------------------------------------------------
+inspect half (double (suc (suc zero))) => suc (suc zero) : Nat
+------------------------------------------------------------------------------
+     ( p : Eq (suc m) (suc n) !       
+let  !------------------------!       
+     !   injSuc p : Eq m n    )       
+                                      
+     injSuc p <= case p               
+     { injSuc (refl (suc n)) => refl n
+     }                                
+------------------------------------------------------------------------------
+     ( p : Eq zero (suc n) !
+let  !---------------------!
+     !  incons p : False   )
+                            
+     incons p <= case p     
+------------------------------------------------------------------------------
+     (           p : Dec (Eq m n)            !          
+let  !---------------------------------------!          
+     ! decEqSuc p : Dec (Eq (suc m) (suc n)) )          
+                                                        
+     decEqSuc p <= case p                               
+     { decEqSuc (yes a) <= case a                       
+       { decEqSuc (yes (refl n)) => (yes (refl (suc n)))
+       }                                                
+       decEqSuc (no f) => no (lam p => f (injSuc p))    
+     }                                                  
+------------------------------------------------------------------------------
+     (        m, n : Nat        !                            
+let  !--------------------------!                            
+     ! decEq m n : Dec (Eq m n) )                            
+                                                             
+     decEq m n <= rec m                                      
+     { decEq x n <= case x                                   
+       { decEq zero n <= case n                              
+         { decEq zero zero => yes (refl zero)                
+           decEq zero (suc n) => no incons                   
+         }                                                   
+         decEq (suc n) n' <= case n'                         
+         { decEq (suc n) zero => no (lam p => incons (sym p))
+           decEq (suc n') (suc n) => decEqSuc (decEq n' n)   
+         }                                                   
+       }                                                     
+     }                                                       
+------------------------------------------------------------------------------

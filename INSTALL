@@ -1,0 +1,42 @@
+$Id: INSTALL,v 1.2 2004/11/29 17:10:05 dcs0pcc Exp $
+
+Running Epigram
+---------------
+
+These comments assume that you are using a pre-compiled distribution. 
+See below for information on compiling the system. 
+
+There is a script in the distributions' root directory, called "epigram"
+(on Linux/Unix) or "epigram.bat" (on Windows). Running this will start
+XEmacs, which in turn will start Epigram.  See below for comments relevant 
+to a particular platform.
+
+The start script takes note of its location on your disk, and uses that 
+information to correctly pick up the corresponding Epigram binary and the
+various library files. Hence, no further installation is required!
+
+
+
+Linux version
+-------------
+
+"xemacs" must be available on your path. 
+
+
+Windows version
+---------------
+
+"xemacs" must be available on your path. 
+
+
+
+================================================================================
+Building Epigram
+
+Type "make" in the distribution's root directory. The Makefiles should work
+on Linux/Unix and on Windows under Cygwin. 
+
+This will make the standard version of Epigram. 
+
+The Makefiles assume that you have "ghc" in your path. 
+

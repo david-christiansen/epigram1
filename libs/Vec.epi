@@ -1,0 +1,88 @@
+------------------------------------------------------------------------------
+include Fin
+------------------------------------------------------------------------------
+     ( n : Nat ;  X : * !                            ( x : X ;  xs : Vec n X !
+data !------------------!  where (--------------! ;  !-----------------------!
+     !   Vec n X : *    )        ! vnil :       !    !    vcons x xs :       !
+                                 !   Vec zero X )    !      Vec (suc n) X    )
+------------------------------------------------------------------------------
+     ( xs : Vec (suc n) X !     
+let  !--------------------!     
+     !    vhead xs : X    )     
+                                
+     vhead xs <= case xs        
+     { vhead (vcons n' ns) => n'
+     }                          
+------------------------------------------------------------------------------
+     ( xs : Vec (suc n) X !     
+let  !--------------------!     
+     ! vtail xs : Vec n X )     
+                                
+     vtail xs <= case xs        
+     { vtail (vcons n' ns) => ns
+     }                          
+------------------------------------------------------------------------------
+     ( xs : Vec n X ;  i : Fin n !                     
+let  !---------------------------!                     
+     !     vlookup xs i : X      )                     
+                                                       
+     vlookup xs i <= rec i                             
+     { vlookup xs i <= case i                          
+       { vlookup xs fz <= case xs                      
+         { vlookup (vcons n' ns) fz => n'              
+         }                                             
+         vlookup xs (fs i) <= case xs                  
+         { vlookup (vcons n' ns) (fs i) => vlookup ns i
+         }                                             
+       }                                               
+     }                                                 
+------------------------------------------------------------------------------
+     ( f : all x : X => Y ;  xs : Vec n X !            
+let  !------------------------------------!            
+     !        vmap f xs : Vec n Y         )            
+                                                       
+     vmap f xs <= rec xs                               
+     { vmap f xs <= case xs                            
+       { vmap f vnil => vnil                           
+         vmap f (vcons x xs) => vcons (f x) (vmap f xs)
+       }                                               
+     }                                                 
+------------------------------------------------------------------------------
+     ( _n : Nat ;  x : X  !                    
+let  !--------------------!                    
+     ! vec _n x : Vec n X )                    
+                                               
+     vec _ n x <= rec n                        
+     { vec _ n x <= case n                     
+       { vec _ zero x => vnil                  
+         vec _ (suc n) x => vcons x (vec _ n x)
+       }                                       
+     }                                         
+------------------------------------------------------------------------------
+     ( fs : Vec n (X -> Y) ;  xs : Vec n X !                                 
+let  !-------------------------------------!                                 
+     !       vapply fs xs : Vec n Y        )                                 
+                                                                             
+     vapply fs' xs <= rec xs                                                 
+     { vapply fs' xs <= case xs                                              
+       { vapply fs' vnil => vnil                                             
+         vapply fs' (vcons x xs) <= case fs'                                 
+         { vapply (vcons f fs') (vcons n' ns) => vcons (f n') (vapply fs' ns)
+         }                                                                   
+       }                                                                     
+     }                                                                       
+------------------------------------------------------------------------------
+     ( xs : Vec (suc n) X  !                
+let  !---------------------! ; 
+     ! vtrunc xs : Vec n X )                
+
+  vtrunc _ n _ X xs <= rec xs                            
+     { vtrunc _ n _ X xs <= case xs                         
+       { vtrunc _ n _ X (vcons _ X x _ n xs) <= case n      
+         { vtrunc _ zero _ X (vcons _ X x _ zero xs) => vnil
+           vtrunc _ (suc n) _ X (vcons _ X x _ (suc n) xs)  
+             => vcons x (vtrunc xs)                         
+         }                                                  
+       }                                                    
+     }      
+------------------------------------------------------------------------------

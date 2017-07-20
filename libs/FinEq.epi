@@ -1,0 +1,58 @@
+------------------------------------------------------------------------------
+include Fin
+------------------------------------------------------------------------------
+     (  i : Fin n  !        (  i : Fin (suc n)  !
+data !-------------!  where !-------------------!
+     ! FinNE i : * )        ! finNE i : FinNE i )
+------------------------------------------------------------------------------
+     (       i : Fin n       !      
+let  !-----------------------!      
+     ! albert _n i : FinNE i )      
+                                    
+     albert _ n i <= case n         
+     { albert _ zero i <= case i    
+       albert _ (suc n) i => finNE i
+     }                              
+------------------------------------------------------------------------------
+     ( i : Fin (suc n) ;  j : Fin n !         
+let  !------------------------------!         
+     !    thin i j : Fin (suc n)    )         
+                                              
+     thin i j <= rec i                        
+     { thin i j <= case i                     
+       { thin fz j => fs j                    
+         thin (fs i) j <= case j              
+         { thin (fs i) fz => fz               
+           thin (fs i) (fs j) => fs (thin i j)
+         }                                    
+       }                                      
+     }                                        
+------------------------------------------------------------------------------
+     (  i, j :   !                           ( i : Fin (suc! ;  j : Fin n !
+     !    Fin n  !                           !         !% n)              !
+data !-----------!  where (-------------! ;  !----------------------------!
+     ! FinEq i j !        ! same :      !    !    diff j :                !
+     !  : *      )        !   FinEq i i )    !      FinEq i (thin i j)    )
+------------------------------------------------------------------------------
+     (     i, j : Fin n      !                          
+let  !-----------------------!                          
+     ! finEq i j : FinEq i j )                          
+                                                        
+     finEq i j <= rec i                                 
+     { finEq i j <= case i                              
+       { finEq fz j <= case j                           
+         { finEq fz fz => same                          
+           finEq fz (fs j) => diff j                    
+         }                                              
+         finEq (fs i) j <= case j                       
+         { finEq (fs i) fz <= view (albert i)           
+           { finEq (fs i) fz => diff fz                 
+           }                                            
+           finEq (fs i) (fs j) <= view (finEq i j)      
+           { finEq (fs i) (fs i) => same                
+             finEq (fs i) (fs (thin i j)) => diff (fs j)
+           }                                            
+         }                                              
+       }                                                
+     }                                                  
+------------------------------------------------------------------------------

@@ -1,0 +1,20 @@
+------------------------------------------------------------------------------
+include Bool
+------------------------------------------------------------------------------
+     (   A : *    !                            ( x : A ;  xs : List A !
+data !------------!  where (--------------! ;  !----------------------!
+     ! List A : * )        ! nil : List A )    !  cons x xs : List A  )
+------------------------------------------------------------------------------
+     ( x : A ;  xs : List A ;  eq : all a : A => all b : A => Bool !
+let  !-------------------------------------------------------------!
+     !                     elem x xs eq : Bool                     )
+                                                                    
+     elem x xs eq <= rec xs                                         
+     { elem x' x eq <= case x                                       
+       { elem x' nil eq => false                                    
+         elem x' (cons x xs) eq <= case (eq x' x)                   
+         { elem x' (cons x xs) eq => true                           
+           elem x' (cons x xs) eq => elem x' xs eq                  
+         }                                                          
+       }                                                            
+     }                                 

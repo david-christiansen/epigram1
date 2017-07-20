@@ -1,0 +1,33 @@
+------------------------------------------------------------------------------
+include Fin
+------------------------------------------------------------------------------
+     ( b, n : Nat !        (  i : Fin b   !                       
+data !------------!  where !--------------! ;  (-----------------!
+     !  Bounded   !        ! inBound i    !    ! outBound n      !
+     !  % b n     !        !  : Bounded b !    !  : Bounded b    !
+     !   : *      )        !    % (fog i) )    !    % (plus b n) )
+------------------------------------------------------------------------------
+let  (---------------------------!                          
+     ! bounded b n : Bounded b n )                          
+                                                            
+     bounded b n <= rec b                                   
+     { bounded x n <= case x                                
+       { bounded zero n => outBound n                       
+         bounded (suc n) n' <= case n'                      
+         { bounded (suc n) zero => inBound fz               
+           bounded (suc n') (suc n) <= view bounded n' n    
+           { bounded (suc b) (suc (fog i)) => inBound (fs i)
+             bounded (suc b) (suc (plus b n)) => outBound n 
+           }                                                
+         }                                                  
+       }                                                    
+     }                                                      
+------------------------------------------------------------------------------
+inspect bounded (suc (suc (suc zero))) (suc zero)                       
+          => inBound (fs fz) : Bounded (suc (suc (suc zero))) (suc zero)
+------------------------------------------------------------------------------
+inspect bounded (suc zero) (suc (suc (suc zero)))     
+          =>                                          
+          outBound (suc (suc zero))                   
+           : Bounded (suc zero) (suc (suc (suc zero)))
+------------------------------------------------------------------------------

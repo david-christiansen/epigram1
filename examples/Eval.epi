@@ -1,0 +1,121 @@
+------------------------------------------------------------------------------
+include Nat
+------------------------------------------------------------------------------
+     (  S, T : *   !          
+let  !-------------!          
+     ! Arr S T : * )          
+                              
+     Arr S T => all x : S => T
+------------------------------------------------------------------------------
+                                       (  s, t : Type   !
+data (----------!  where nat : Type ;  !----------------!
+     ! Type : * )                      ! arr s t : Type )
+------------------------------------------------------------------------------
+     ( sigma : Type  !                       
+let  !---------------!                       
+     ! Val sigma : * )                       
+                                             
+     Val sigma <= rec sigma                  
+     { Val x <= case x                       
+       { Val nat => Nat                      
+         Val (arr s t) => Arr (Val s) (Val t)
+       }                                     
+     }                                       
+------------------------------------------------------------------------------
+                                       ( Gamma : Con ;  sigma : Type !
+data (---------!  where empty : Con ;  !-----------------------------!
+     ! Con : * )                       !    ext Gamma sigma : Con    )
+------------------------------------------------------------------------------
+     (  Gamma : Con  !                                              
+data !---------------!                                              
+     ! Env Gamma : * )                                              
+                                                                    
+                            (  gamma : Env Gamma ;  x : Val sigma  !
+where eempty : Env empty ;  !--------------------------------------!
+                            ! eext gamma x : Env (ext Gamma sigma) )
+------------------------------------------------------------------------------
+     ( Gamma : Con ;  sigma : Type !                                    
+data !-----------------------------!                                    
+     !     Var Gamma sigma : *     )                                    
+                                                                        
+                                        (     x : Var Gamma sigma      !
+where (----------------------------! ;  !------------------------------!
+      ! vz : Var (ext Gamma! sigma !    ! vs x                         !
+      !          !% sigma  )       )    !  : Var (ext Gamma tau) sigma )
+------------------------------------------------------------------------------
+     ( Gamma : Con ;  sigma : Type !                                     
+data !-----------------------------!                                     
+     !     Tm Gamma sigma : *      )                                     
+                                                                         
+      (  x : Var Gamma sigma   !                                         
+where !------------------------!                                         
+      ! var x : Tm Gamma sigma )                                         
+                                                                         
+      (    t : Tm (ext Gamma sigma) tau     !                            
+      !-------------------------------------!                            
+      ! lambda t : Tm Gamma (arr sigma tau) )                            
+                                                                         
+      ( t : Tm Gamma (arr sigma tau) ;  u : Tm Gamma sigma !             
+      !----------------------------------------------------!             
+      !               app t u : Tm Gamma tau               )             
+                                                                         
+      (----------------------!                                           
+      ! tzero : Tm Gamma nat )                                           
+                                                                         
+                             ( n : Tm Gamma nat                         !
+                             !                                          !
+                             ! z : Tm Gamma sigma                       !
+      ( n               !    !                                          !
+      !  : Tm Gamma nat !    ! s : Tm Gamma (arr nat (arr sigma sigma)) !
+      !-----------------! ;  !------------------------------------------!
+      ! tsuc n         !    !       prec n z s : Tm Gamma sigma        )
+      !  : Tm Gamma nat )                                                
+------------------------------------------------------------------------------
+     ( n : Nat ;  z : A ;  s :  Nat ->  (A -> A) !
+let  !-------------------------------------------!
+     !              pRec n z s : A               )
+                                                  
+     pRec n z s <= rec n                          
+     { pRec x z s <= case x                       
+       { pRec zero z s => z                       
+         pRec (suc n) z s => s n (pRec n z s)    
+       }                                          
+     }                                            
+------------------------------------------------------------------------------
+     ( e : Env Gamma ;  x : Var Gamma sigma !              
+let  !--------------------------------------!              
+     !        lookup e x : Val sigma        )              
+                                                           
+     lookup e x <= rec x                                   
+     { lookup e x <= case x                                
+       { lookup e vz <= case e                             
+         { lookup (eext gamma x) vz => x                   
+         }                                                 
+         lookup e (vs x) <= case e                         
+         { lookup (eext gamma x) (vs x') => lookup gamma x'
+         }                                                 
+       }                                                   
+     }                                                     
+------------------------------------------------------------------------------
+     ( e : Env Gamma ;  t : Tm Gamma sigma !                         
+let  !-------------------------------------!                         
+     !        eval e t : Val sigma         )                         
+                                                                     
+     eval e t <= rec t                                               
+     { eval e x <= case x                                            
+       { eval e (var x) => lookup e x                                
+         eval e (lambda t) => lam x => eval (eext e x) t             
+         eval e (app t u) => (eval e t) (eval e u)                   
+         eval e tzero => zero                                        
+         eval e (tsuc n) => suc (eval e n)                         
+         eval e (prec n z s) => pRec (eval e n) (eval e z) (eval e s)
+       }                                                             
+     }                                                               
+------------------------------------------------------------------------------
+inspect eval eempty                                                           
+        % (app (app (lambda (lambda (prec (var (vs vz)) (var vz)         !!!!!
+          !    !    !       !       !% (lambda (lambda (tsuc (var vz)))))))!!
+          !    !% (tsuc (tsuc tzero))                                     )!
+          !% (tsuc (tsuc tzero))                                           )
+          => suc (suc (suc (suc zero))) : Nat                             
+------------------------------------------------------------------------------

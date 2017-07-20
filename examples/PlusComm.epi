@@ -1,0 +1,44 @@
+------------------------------------------------------------------------------
+include Nat
+------------------------------------------------------------------------------
+include Eq
+------------------------------------------------------------------------------
+     (           p : Eq m n           !
+let  !--------------------------------!
+     ! respSuc p : Eq (suc m) (suc n) )
+                                       
+     respSuc p <= case p               
+     { respSuc (refl n) => refl (suc n)
+     }                                 
+------------------------------------------------------------------------------
+let  (-----------------------------------!           
+     ! addcomzero n : Eq (plus n zero) n )           
+                                                     
+     addcomzero n <= rec n                           
+     { addcomzero x <= case x                        
+       { addcomzero zero => refl zero                
+         addcomzero (suc n) => respSuc (addcomzero n)
+       }                                             
+     }                                               
+------------------------------------------------------------------------------
+let  (------------------------------------------------------!
+     ! addcomsuc n m : Eq (plus n (suc m)) (suc (plus n m)) )
+                                                             
+     addcomsuc n m <= rec n                                  
+     { addcomsuc x m <= case x                               
+       { addcomsuc zero m => refl (suc m)                    
+         addcomsuc (suc n) m => respSuc (addcomsuc n m)      
+       }                                                     
+     }                                                       
+------------------------------------------------------------------------------
+     (              m, n : Nat               !                           
+let  !---------------------------------------!                           
+     ! addcom m n : Eq (plus m n) (plus n m) )                           
+                                                                         
+     addcom m n <= rec n                                                 
+     { addcom m x <= case x                                              
+       { addcom m zero => addcomzero m                                   
+         addcom m (suc n) => trans (addcomsuc m n) (respSuc (addcom m n))
+       }                                                                 
+     }                                                                   
+------------------------------------------------------------------------------

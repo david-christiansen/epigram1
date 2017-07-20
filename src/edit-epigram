@@ -1,0 +1,1 @@
+xemacs -l ghci-epigram.el &
