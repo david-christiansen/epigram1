@@ -37,12 +37,12 @@
 
 (base-funnel "Might")
 
-> instance Fun f => Funnel f Might (f Might) where
->   fun    = eta
+> instance Applicative f => Funnel f Might (f Might) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "Must")
 
-> instance Fun f => Funnel f Must (f Must) where
->   fun    = eta
+> instance Applicative f => Funnel f Must (f Must) where
+>   fun    = pure
 >   funnel = id

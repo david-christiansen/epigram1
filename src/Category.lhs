@@ -32,7 +32,7 @@ packaging t to indicate some specific purpose to which t's are being put.
 Id, Comp, K, Cross, Endo
 ******************************************************************************
 
-> newtype Id x = Id x deriving (Show,Eq)
+> newtype Id x = Id x deriving (Show,Eq,Functor)
 
 > instance Unpack (Id x) x where
 >   un (Id x) = x
@@ -41,12 +41,15 @@ Id, Comp, K, Cross, Endo
 
 > newtype Comp f g x = Comp (f (g x))
 
+> instance (Functor f,Functor g) => Functor (Comp f g) where
+>   fmap f (Comp x) = Comp (fmap (fmap f) x)
+
 > instance Unpack (Comp f g x) (f (g x)) where
 >   un (Comp x) = x
 >   nu = Comp
 
 
-> newtype K s t = K s deriving (Show,Eq)
+> newtype K s t = K s deriving (Show,Eq,Functor)
 
 > instance Unpack (K s t) s where
 >   un (K x) = x
@@ -54,7 +57,7 @@ Id, Comp, K, Cross, Endo
 
 
 > infixr 5 :*:
-> data Cross f g x = f x :*: g x deriving Show
+> data Cross f g x = f x :*: g x deriving (Show,Functor)
 
 
 > newtype Endo x = Endo (x -> x)
@@ -71,41 +74,35 @@ Id, Comp, K, Cross, Endo
 
 
 ******************************************************************************
-Fun
+Applicative helpers
 ******************************************************************************
 
-A type constructor is Fun if it can be pushed through ->.
-
-> infixl 9 <$>
-> class Fun f where
->   eta :: x -> f x
->   (<$>) :: f (s -> t) -> f s -> f t
 
 Useful special cases
 
 > infixl 9 </>
-> (</>) :: Fun f => f s -> f t -> f s
-> fs </> ft = eta const <$> fs <$> ft
+> (</>) :: Applicative f => f s -> f t -> f s
+> fs </> ft = pure const <*> fs <*> ft
 
 > infixl 9 <\>
-> (<\>) :: Fun f => f s -> f t -> f t
-> fs <\> ft = eta (const id) <$> fs <$> ft
+> (<\>) :: Applicative f => f s -> f t -> f t
+> fs <\> ft = pure (const id) <*> fs <*> ft
 
-> funMap :: Fun f => (s -> t) -> f s -> f t
-> funMap f = (eta f <$>)
+> funMap :: Applicative f => (s -> t) -> f s -> f t
+> funMap f = (pure f <*>)
 
 
-> instance Fun Id where
->   eta = nu
->   Id f <$> Id s = Id (f s)
+> instance Applicative Id where
+>   pure = nu
+>   Id f <*> Id s = Id (f s)
 
-> instance (Fun f,Fun g) => Fun (Comp f g) where
->   eta = Comp . eta . eta
->   Comp fgh <$> Comp fgx = Comp (funMap (<$>) fgh <$> fgx)
+> instance (Applicative f,Applicative g) => Applicative (Comp f g) where
+>   pure = Comp . pure . pure
+>   Comp fgh <*> Comp fgx = Comp (funMap (<*>) fgh <*> fgx)
 
-> instance (Fun f,Fun g) => Fun (Cross f g) where
->   eta x = eta x :*: eta x
->   (f :*: g) <$> (x :*: y) = f <$> x :*: g <$> y
+> instance (Applicative f,Applicative g) => Applicative (Cross f g) where
+>   pure x = pure x :*: pure x
+>   (f :*: g) <*> (x :*: y) = (f <*> x) :*: (g <*> y)
 
 
 
@@ -115,61 +112,61 @@ Funnel
 
 This type-level operation computes the lifting of a function through a Fun f.
 
-> class Fun f => Funnel f s t | f s -> t, s t -> f, f t -> s where
+> class Applicative f => Funnel f s t | f s -> t, s t -> f, f t -> s where
 >   fun :: s -> t
 >   funnel :: f s -> t
 
 > instance Funnel f t u => Funnel f (s -> t) (f s -> u) where
->   fun g = funnel (eta g)
->   funnel fg fx = funnel (fg <$> fx)
+>   fun g = funnel (pure g)
+>   funnel fg fx = funnel (fg <*> fx)
 
 Every datatype should be given a base Funnel instance. Here's a handy
 emacs function to generate it!
 
 (defun base-funnel (data) (insert (concat "\n\n"
-"> instance Fun f => Funnel f " data " (f " data") where\n"
-">   fun    = eta\n"
+"> instance Applicative f => Funnel f " data " (f " data") where\n"
+">   fun    = pure\n"
 ">   funnel = id\n"
 )))
 
 (base-funnel "(Id x)")
 
-> instance Fun f => Funnel f (Id x) (f (Id x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Id x) (f (Id x)) where
+>   fun    = pure
 >   funnel = id
 
 
 (base-funnel "(Comp g h x)")
 
-> instance Fun f => Funnel f (Comp g h x) (f (Comp g h x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Comp g h x) (f (Comp g h x)) where
+>   fun    = pure
 >   funnel = id
 
 
 (base-funnel "(K s t)")
 
-> instance Fun f => Funnel f (K s t) (f (K s t)) where
->   fun    = eta
+> instance Applicative f => Funnel f (K s t) (f (K s t)) where
+>   fun    = pure
 >   funnel = id
 
 
 (base-funnel "(Cross g h x)")
 
-> instance Fun f => Funnel f (Cross g h x) (f (Cross g h x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Cross g h x) (f (Cross g h x)) where
+>   fun    = pure
 >   funnel = id
 
 
 (base-funnel "(Endo x)")
 
-> instance Fun f => Funnel f (Endo x) (f (Endo x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Endo x) (f (Endo x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(Odne x)")
 
-> instance Fun f => Funnel f (Odne x) (f (Odne x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Odne x) (f (Odne x)) where
+>   fun    = pure
 >   funnel = id
 
 
@@ -180,10 +177,10 @@ Functorial
 
 > infixl 9 <^>
 > class Functorial g where
->   (<^>) :: Fun f => (s -> f t) -> g s -> f (g t)
+>   (<^>) :: Applicative f => (s -> f t) -> g s -> f (g t)
 
 > infixl 9 <^^>
-> (<^^>) :: (Fun f,Functorial g,Functorial h) =>
+> (<^^>) :: (Applicative f,Functorial g,Functorial h) =>
 >            (s -> f t) -> g (h s) -> f (g (h t))
 > f <^^> ghs = (f <^>) <^> ghs
 
@@ -210,7 +207,7 @@ Lists, for example:
 >   g <^> Comp x = fun Comp (g <^^> x)
 
 > instance (Functorial g,Functorial h) => Functorial (Cross g h) where
->   g <^> (x :*: y) = eta (:*:) <$> (g <^> x) <$> (g <^> y)
+>   g <^> (x :*: y) = pure (:*:) <*> (g <^> x) <*> (g <^> y)
 
    g <^> (x :*: y) = fun (:*:) (g <^> x) (g <^> y) -- ditto
 
@@ -232,7 +229,7 @@ Products
 Monoidal
 ******************************************************************************
 
-> infixr 5 <+>
+> infixr 3 <+>
 > class Monoidal x where
 >   m0 :: x
 >   (<+>) :: BinOp x
@@ -244,9 +241,9 @@ Monoidal
 > to :: s -> (s -> t) -> t
 > to a f = f a
 
-> instance Monoidal s => Fun (K s) where
->   eta _ = K m0
->   K x <$> K y = K (x <+> y)
+> instance Monoidal s => Applicative (K s) where
+>   pure _ = K m0
+>   K x <*> K y = K (x <+> y)
 
 > infixl 9 <!>
 
@@ -298,57 +295,57 @@ Funnels for standard datatypes
 
 (base-funnel "()")
 
-> instance Fun f => Funnel f () (f ()) where
->   fun    = eta
+> instance Applicative f => Funnel f () (f ()) where
+>   fun    = pure
 >   funnel = id
 
 
 (base-funnel "Bool")
 
-> instance Fun f => Funnel f Bool (f Bool) where
->   fun    = eta
+> instance Applicative f => Funnel f Bool (f Bool) where
+>   fun    = pure
 >   funnel = id
 
 
 (base-funnel "(x,y)")
 
-> instance Fun f => Funnel f (x,y) (f (x,y)) where
->   fun    = eta
+> instance Applicative f => Funnel f (x,y) (f (x,y)) where
+>   fun    = pure
 >   funnel = id
 
 
 (base-funnel "[x]")
 
-> instance Fun f => Funnel f [x] (f [x]) where
->   fun    = eta
+> instance Applicative f => Funnel f [x] (f [x]) where
+>   fun    = pure
 >   funnel = id
 
 
 (base-funnel "(Maybe x)")
 
-> instance Fun f => Funnel f (Maybe x) (f (Maybe x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Maybe x) (f (Maybe x)) where
+>   fun    = pure
 >   funnel = id
 
 
 (base-funnel "(Either x y)")
 
-> instance Fun f => Funnel f (Either x y) (f (Either x y)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Either x y) (f (Either x y)) where
+>   fun    = pure
 >   funnel = id
 
 
 (base-funnel "Int")
 
-> instance Fun f => Funnel f Int (f Int) where
->   fun    = eta
+> instance Applicative f => Funnel f Int (f Int) where
+>   fun    = pure
 >   funnel = id
 
 
 (base-funnel "Char")
 
-> instance Fun f => Funnel f Char (f Char) where
->   fun    = eta
+> instance Applicative f => Funnel f Char (f Char) where
+>   fun    = pure
 >   funnel = id
 
 

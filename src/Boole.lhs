@@ -8,13 +8,14 @@
 
 > import Name
 > import Category
+> import Monadics
 
 > data Boole x
 >   = BVal Bool
 >   | BVar x
 >   | BAnd (Boole x) (Boole x)
 >   | BOr (Boole x) (Boole x)
->   deriving Show
+>   deriving (Show,Functor)
 
 > bAnd :: Boole x -> Boole x -> Boole x
 > bAnd (BVal False) _ = BVal False
@@ -36,8 +37,12 @@
 >   g <^> BAnd b1 b2 = fun BAnd (g <^> b1) (g <^> b2)
 >   g <^> BOr  b1 b2 = fun BOr (g <^> b1) (g <^> b2)
 
+> instance Applicative Boole where
+>   pure  = BVar
+>   (<*>) = monadDollar
+
 > instance Monad Boole where
->   return = BVar
+>   return = pure
 >   BVal b >>= f = BVal b
 >   BVar x >>= f = f x
 >   BAnd b1 b2 >>= f = bAnd (b1 >>= f) (b2 >>= f)
@@ -49,7 +54,7 @@
 
 (base-funnel "(Boole x)")
 
-> instance Fun f => Funnel f (Boole x) (f (Boole x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Boole x) (f (Boole x)) where
+>   fun    = pure
 >   funnel = id
 

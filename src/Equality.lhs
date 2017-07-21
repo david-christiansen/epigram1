@@ -148,11 +148,11 @@ Eta equality
 >     $ Must False
 
 > headEq :: QEnv -> (Hd Sem LName) -> (Hd Sem LName) -> Maybe Term
-> headEq n (Var x1) (Var x2) | x1 == x2 = eta (qType n x1)
+> headEq n (Var x1) (Var x2) | x1 == x2 = pure (qType n x1)
 > headEq n (Hope x1) (Hope x2)
->   | x1 == x2 = eta (qType n (F x1))
+>   | x1 == x2 = pure (qType n (F x1))
 > headEq n (Wait x1) (Wait x2)
->   | x1 == x2 = eta (qType n (F x1))
+>   | x1 == x2 = pure (qType n (F x1))
 > headEq n (Blocked f1 ts1) (Blocked f2 ts2)
 >   | show f1 == show f2
 >   = listEq n (typeH f1) ts1 ts2
@@ -213,7 +213,7 @@ Eta equality
 >   sp _ _ = m0
 
 > listEq :: QEnv -> Term -> List Term -> List Term -> Maybe Term
-> listEq n ty (Tip ()) (Tip ()) = eta ty
+> listEq n ty (Tip ()) (Tip ()) = pure ty
 > listEq n (TBind All (_,NormV) (Sem (Just d) f)) (t1 :>: ts1) (t2 :>: ts2)
 >   | un (etaEq n d t1 t2)
 >   = listEq n (f t1) ts1 ts2
@@ -224,14 +224,14 @@ Eta equality
 >     $ m0
 
 > zipEq :: QEnv -> Term -> Zip Term -> Zip Term -> Maybe Term
-> zipEq _ ty Zip Zip = eta ty
+> zipEq _ ty Zip Zip = pure ty
 > zipEq n ty (tz1 :<: TF (U_ _)) (tz2 :<: TF (U_ _))
 >   | Just (TBind All (unom,UnifV) s) <- zipEq n ty tz1 tz2
->   = eta (TBind All (unom,NormV) s)
+>   = pure (TBind All (unom,NormV) s)
 > zipEq n ty (tz1 :<: t1) (tz2 :<: t2)
 >   | Just (TBind All (_,NormV) (Sem (Just d) f)) <- zipEq n ty tz1 tz2
 >   , un (etaEq n d t1 t2)
->   = eta (f t1)
+>   = pure (f t1)
 > zipEq _ y s t =
 >  track (show s ++ " UNzipEQ " ++ show t ++ " IN " ++ show y)
 >     $ m0

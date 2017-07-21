@@ -1,0 +1,38 @@
+#! /bin/sh
+
+# epigram start script
+#  - decides root of this version of epigram from the actual filename this
+#    script was run at.
+#  - sets env var for epigram and xemacs to use, to get correct libs etc
+
+# Currently assumes:
+#  - this script located in epigram/ and NOT in a sub-directory
+#  - build result is located in src/
+#     - not sure where it should really go - but if we want src-free 
+#       distributions, it had better go in epigram/ or epigram/bin
+#       (NB would need to change makefile in src/, eg have an "install" target)
+#  - compiled-epigram picks up location of binary from the env var
+#  - no attempt to cover case for editing. 
+#     - I'd say - keep that script in with the source, since it only makes
+#       sense if you have the source. 
+
+
+# a warning for the unwary - native XEmacs doesn't understand cygwin/unix paths
+if [ `uname -s | cut -c0-9` = 'CYGWIN_NT' ]; then 
+	echo "You should be using epigram.bat!";
+	exit;
+fi
+
+
+# tell emacs/Epigram what the root is, using a full name
+location=`dirname $0`
+fullpath=`(cd $location && pwd)`
+EPIGRAM_ROOT=$fullpath
+
+# clear the binary extension (NB needed in the .bat file)
+EPIGRAM_EXT=
+
+# allow children to see these vars
+export EPIGRAM_ROOT EPIGRAM_EXT
+
+exec xemacs -l ${EPIGRAM_ROOT}/epigram.el &

@@ -75,7 +75,7 @@ Updatable
 > data Trigger x = Trigger x deriving Show
 
 > instance Updatable x => Updatable (Trigger x) where
->   upd bull (Trigger x) = change Trigger <$> upd bull x
+>   upd bull (Trigger x) = change Trigger <*> upd bull x
 
 > instance Updatable UName where
 >   upd bull unom | Might True <- heardOf unom bull = change unom
@@ -344,13 +344,13 @@ Gubbins
 
 (base-funnel "Story")
 
-> instance Fun f => Funnel f Story (f Story) where
->   fun    = eta
+> instance Applicative f => Funnel f Story (f Story) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "LStory")
 
-> instance Fun f => Funnel f LStory (f LStory) where
->   fun    = eta
+> instance Applicative f => Funnel f LStory (f LStory) where
+>   fun    = pure
 >   funnel = id
 

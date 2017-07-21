@@ -67,14 +67,14 @@ ObjKind
 
 (base-funnel "Con")
 
-> instance Fun f => Funnel f Con (f Con) where
->   fun    = eta
+> instance Applicative f => Funnel f Con (f Con) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "ObjKind")
 
-> instance Fun f => Funnel f ObjKind (f ObjKind) where
->   fun    = eta
+> instance Applicative f => Funnel f ObjKind (f ObjKind) where
+>   fun    = pure
 >   funnel = id
 
 

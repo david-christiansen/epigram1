@@ -286,7 +286,7 @@ CDecl
 > instance Displayable ProgDef
 
 > instance Updatable ProgDef where
->   upd bull (ProgDef p tty) = eta ProgDef <$> upd bull p <$> upd bull tty
+>   upd bull (ProgDef p tty) = pure ProgDef <*> upd bull p <*> upd bull tty
 
 > instance Problem ProgDef Term where
 >   refine (ProgDef prob tty)
@@ -311,7 +311,7 @@ CDecl
 >   display _ _ _ = box DATA
 
 > instance Updatable MakeGadgets where
->   upd bull (MakeGadgets t) = eta MakeGadgets <$> upd bull t
+>   upd bull (MakeGadgets t) = pure MakeGadgets <*> upd bull t
 
 > instance Problem MakeGadgets () where
 >   refine (MakeGadgets t) = do
@@ -343,8 +343,8 @@ CSigs
 > sctType _ = TF Bot
 
 > instance Updatable SigsControl where
->   upd bull (SigsConc t sc) = eta SigsConc <$> upd bull t <$> upd bull sc
->   upd bull sc = eta sc
+>   upd bull (SigsConc t sc) = pure SigsConc <*> upd bull t <*> upd bull sc
+>   upd bull sc = pure sc
 
 > instance Problem (From (CSigs Lexical) (SigsControl,Term)) Term where
 >   refine (From CEmpty sct@(_,t)) =
@@ -368,8 +368,8 @@ CSigs
 >   probType (From _ sct) = sctType sct
 
 > instance Editor (CSigs Lexical) (SigsControl,Term) Term where
->   editParser _ = iPP (eta CSig <$> (eta CRule <$> blah </> iPP (pF RULE) <$>
->                        blah </> iPP (pF COLON) <$> blah)
+>   editParser _ = iPP (pure CSig <*> (pure CRule <*> blah </> iPP (pF RULE) <*>
+>                        blah </> iPP (pF COLON) <*> blah)
 >                      <+> blah)
 >   editType = sctType
 
@@ -541,9 +541,9 @@ CCncl
 > data VarCatch = VarCatch (Zip (UName :=: LName)) deriving Show
 
 > instance Updatable VarCatch where
->   upd bull (VarCatch unz) = eta VarCatch <$> spot unz where
->     spot Zip = eta Zip
->     spot (unz :<: un@(u :=: _)) = eta (:<:) <$> spot unz <$>
+>   upd bull (VarCatch unz) = pure VarCatch <*> spot unz where
+>     spot Zip = pure Zip
+>     spot (unz :<: un@(u :=: _)) = pure (:<:) <*> spot unz <*>
 >       (do tweak (heardOf u bull <+>) ; return un)
 
 > instance Displayable VarCatch where
@@ -664,13 +664,13 @@ CTerm
 > instance Editor (CTerm Lexical) Infer Term where
 >   editParser (Infer r TermPlease) = iPP blah
 >   editParser (Infer r HeadPlease) =
->     eta (CApp . (Zip :<:)) <$>
+>     pure (CApp . (Zip :<:)) <*>
 >       (iPP blah </> pEmpty <+>
->        eta (CTuple . (: [])) <$> iPP blah)
+>        pure (CTuple . (: [])) <*> iPP blah)
 >   editParser (Infer r AppPlease) =
->     eta CApp <$>
+>     pure CApp <*>
 >       (iPP blah </> pEmpty <+>
->        eta (zOne . CTuple . return) <$> iPP blah)
+>        pure (zOne . CTuple . return) <*> iPP blah)
 >   editType _ = cellType
 
 > data Check = Check Recce TermShape Term deriving Show
@@ -684,7 +684,7 @@ CTerm
 >     return tn
 
 > instance Updatable Check where
->   upd bull (Check r th want) = eta (Check r th) <$> upd bull want
+>   upd bull (Check r th want) = pure (Check r th) <*> upd bull want
 
 > cName :: LName -> CTerm LName
 > cName nom = CApp (zOne (CTermoid nom))
@@ -748,7 +748,7 @@ CTerm
 
 > instance Updatable Application where
 >   upd bull (Application f dr a) =
->     eta Application <$> upd bull f <$> upd bull dr <$> upd bull a
+>     pure Application <*> upd bull f <*> upd bull dr <*> upd bull a
 
 > instance Displayable Application where
 >   display ew ctxt (Application (fn,_) _ (an,_)) =
@@ -904,7 +904,7 @@ CTerm
  data FunDomRan = FunDomRan Term deriving Show
 
  instance Updatable FunDomRan where
-   upd bull (FunDomRan ft) = eta FunDomRan <$> upd bull ft
+   upd bull (FunDomRan ft) = pure FunDomRan <*> upd bull ft
 
  instance Displayable x => Displayable (Maybe x) where
    display ew ctxt (Just x) = display ew ctxt x
@@ -964,7 +964,7 @@ Discharges
 
 > instance Updatable DischargeCheck where
 >   upd bull (DischargeCheck b t ty) =
->     eta DischargeCheck <$> upd bull b <$> upd bull t <$> upd bull ty
+>     pure DischargeCheck <*> upd bull b <*> upd bull t <*> upd bull ty
 
 > instance Problem (From (CTerm LName) DischargeCheck) Term where
 >   export del work q@(From d (DischargeCheck (BVal True) t _)) = do
@@ -991,7 +991,7 @@ Discharges
 > data DischargeInfer = DischargeInfer Term deriving Show
 
 > instance Updatable DischargeInfer where
->   upd bull (DischargeInfer tty) = eta DischargeInfer <$> upd bull tty
+>   upd bull (DischargeInfer tty) = pure DischargeInfer <*> upd bull tty
 
 > instance Problem (From (CTerm LName) DischargeInfer) Term where
 >   export del work q@(From d (DischargeInfer tty)) | tm ::: ty <- llec tty =
@@ -1016,7 +1016,7 @@ Discharges
 > data DischargeBoole = DischargeBoole (Boole LName) deriving Show
 
 > instance Updatable DischargeBoole where
->   upd bull (DischargeBoole b) = eta DischargeBoole <$> upd bull b
+>   upd bull (DischargeBoole b) = pure DischargeBoole <*> upd bull b
 
 > instance (Displayable (cf LName), Show (cf LName)) =>
 >   Problem (From (cf LName) DischargeBoole) (Boole LName) where
@@ -1035,7 +1035,7 @@ Variable
 >   display _ _ (Variable (Just ok) unom) = box (ok,unom)
 
 > instance Updatable Variable where
->   upd bull (Variable mok unom) = eta (Variable mok) <$> upd bull unom
+>   upd bull (Variable mok unom) = pure (Variable mok) <*> upd bull unom
 
 > instance Problem (Trigger Variable) Term where
 >   refine (Trigger (Variable Nothing unom)) = do
@@ -1379,7 +1379,7 @@ It's harder if the f***er has already written the program!
 
 > instance Updatable ProgTac where
 >   upd bull (ProgTac lr mps t p) =
->     eta (ProgTac lr mps) <$> upd bull t <$> upd bull p
+>     pure (ProgTac lr mps) <*> upd bull t <*> upd bull p
 
 > instance Problem ProgTac Term where
 >   probType (ProgTac _ _ _ p) = p
@@ -1417,7 +1417,7 @@ Make an lhs from the problem
 >     (fn,_) <- elabTerm "f" $ From (Variable (Just ObjDefn) f) ()
 >     (fan,_) <- elabTerm "fa" $
 >       From (AppPlease,zOne (CTermoid fn)) (fty,az <>> nil)
->     lhs <- eta (CLhs (zOne (CTermoid fan))) <$> (wblat <^> wWz)
+>     lhs <- pure (CLhs (zOne (CTermoid fan))) <*> (wblat <^> wWz)
 >     solved (BVal True) (From lhs ())
 >     where wblat (w ::: wt) = do
 >             (wn,_) <- elabTerm "w" $ From () (TermPlease,w ::: Just wt)
@@ -1541,7 +1541,7 @@ Check an lhs
 >   refine _ = stuck
 
 > instance Updatable Bind where
->   upd bull b = eta b
+>   upd bull b = pure b
 
 > instance Problem (From (CSigs LName) Bind) Term
 
@@ -1579,7 +1579,7 @@ Check an lhs
 > data PickName = PickName LName UName deriving Show
 
 > instance Updatable PickName where
->   upd bull (PickName nom unom) = eta (PickName nom) <$> upd bull unom
+>   upd bull (PickName nom unom) = pure (PickName nom) <*> upd bull unom
 
 > instance Displayable PickName where
 >   display _ _ (PickName _ unom) = box unom
@@ -1632,7 +1632,7 @@ Compute an LCF-style problem decomposition from an rhs
 > data Split = Split (Term ::: Term) ((Label Term) ::: Term) deriving Show
 
 > instance Updatable Split where
->   upd bull (Split e t) = eta Split <$> upd bull e <$> upd bull t
+>   upd bull (Split e t) = pure Split <*> upd bull e <*> upd bull t
 
 > instance Problem (From [CRhs LName] Split) Term where
 >   probType (From _ (Split _ (l ::: t))) =

@@ -39,7 +39,7 @@ Interface
 >   where
 >     seekCons (TF Only) = return Zip
 >     seekCons (TF (Pair _ cons (TF (Con (DataCon _) ucon _ _)))) =
->       eta (:<:) <$> seekCons cons <$> seekUName ucon
+>       pure (:<:) <*> seekCons cons <*> seekUName ucon
 >     seekCons _ = doo m0
 >     recNames i (TBind All (u@(UN s), _) (Sem (Just dom) ran)) =
 >       (if isRec i dom then [s] else []) ++ recNames (i + 1) (ran (var i u))

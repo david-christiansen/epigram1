@@ -95,7 +95,7 @@ Computing parsers from types
 
 > instance (Monoidal (m (t,[i])),ParseFrom m s i ()) =>
 >   ParseFrom m [(s,t)] i t where
->   pF = (<!>) (\ (s,t) -> eta t </> pF s)
+>   pF = (<!>) (\ (s,t) -> pure t </> pF s)
 
 
 

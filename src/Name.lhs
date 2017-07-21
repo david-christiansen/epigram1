@@ -22,8 +22,8 @@ LName
 
 (base-funnel "LName")
 
-> instance Fun f => Funnel f LName (f LName) where
->   fun    = eta
+> instance Applicative f => Funnel f LName (f LName) where
+>   fun    = pure
 >   funnel = id
 
 

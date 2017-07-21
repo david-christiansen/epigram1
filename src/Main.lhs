@@ -6,7 +6,7 @@
 
 > module Main where
 
-> import IO (hSetBuffering, BufferMode(..), stdin, stdout)
+> import System.IO (hSetBuffering, BufferMode(..), stdin, stdout)
 
 <> import System(exitFailure)
 <> import System.Posix.Signals(sigALRM, installHandler, emptySignalSet)

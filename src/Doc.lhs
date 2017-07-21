@@ -12,7 +12,7 @@
 > import Zip
 > import Parser
 > import Logic
-> import Array
+> import Data.Array
 
 > -- import Debug.Trace
 
@@ -59,8 +59,8 @@
 
 (base-funnel "Bracket")
 
-> instance Fun f => Funnel f Bracket (f Bracket) where
->   fun    = eta
+> instance Applicative f => Funnel f Bracket (f Bracket) where
+>   fun    = pure
 >   funnel = id
 
 > data Element
@@ -97,8 +97,8 @@
 
 (base-funnel "Sep")
 
-> instance Fun f => Funnel f Sep (f Sep) where
->   fun    = eta
+> instance Applicative f => Funnel f Sep (f Sep) where
+>   fun    = pure
 >   funnel = id
 
 > instance Parse Maybe Char Sep where
@@ -151,8 +151,8 @@
 
 (base-funnel "Plan")
 
-> instance Fun f => Funnel f Plan (f Plan) where
->   fun    = eta
+> instance Applicative f => Funnel f Plan (f Plan) where
+>   fun    = pure
 >   funnel = id
 
 > zoneBody :: (Int,Body) -> Body -> (Int,Body)
@@ -163,9 +163,9 @@
 
 > planDone :: (Int,Int) -> Plan -> Maybe (Sized (Zip Element))
 > planDone _ (POpen _ _ _ _) = m0
-> planDone hd (PZone (_,Left w)) = eta $
->   Sized (w,hd) (zCrop w (eta (EC ' ')))
-> planDone hd (PZone (_,Right s)) = eta $ (Sized (1,hd) . (Zip :<:) . EC) <!> s
+> planDone hd (PZone (_,Left w)) = pure $
+>   Sized (w,hd) (zCrop w (pure (EC ' ')))
+> planDone hd (PZone (_,Right s)) = pure $ (Sized (1,hd) . (Zip :<:) . EC) <!> s
 > planDone (h,d) (PClosed i lp (br,dz) rp) =
 >   do lz <- planDone (h - i,d) lp
 >      rz <- planDone (h - i,d) rp
@@ -223,7 +223,7 @@
 > planSkip (POpen i lp stuf rp) =
 >   fun (reopen i) (planTab lp) (planBracket stuf) (planSkip rp)
 > planSkip (PClosed i lp brdz rp) =
->   fun (PClosed i) (planSkip lp) (eta brdz) (planSkip rp)
+>   fun (PClosed i) (planSkip lp) (pure brdz) (planSkip rp)
 
 > bodySep :: [Sep] -> Parser PSM (Body,Sep) (Body,Sep)
 > bodySep seps = pT bst where
@@ -244,7 +244,7 @@
 > planRead :: Plan -> [Sep] -> Parser PSM (Body,Sep) (Plan,Sep)
 > planRead (PZone ib) seps =
 >   do (b,sep) <- bodySep seps
->      eta (PZone (zoneBody ib b),sep)
+>      pure (PZone (zoneBody ib b),sep)
 >   <+>
 >   do (b,br) <- bodyOpen
 >      brute <- planBracket (br,(Zip,psGo))
@@ -293,32 +293,32 @@
 > outDoc :: Trans EditDoc
 > outDoc (lz :<: (Sized whd doc,br),sdoc)
 >   | Sized x (ez :*: es) <- here doc
->   = eta (lz,Sized whd $ doc { here = Sized x (ez :*: EB br sdoc :>: es) })
+>   = pure (lz,Sized whd $ doc { here = Sized x (ez :*: EB br sdoc :>: es) })
 > outDoc _ = m0
 
 > inDoc :: Trans EditDoc
 > inDoc (lz,Sized whd doc)
 >   | Sized x (ez :*: EB br sdoc :>: es) <- here doc
->   = eta (lz :<: (Sized whd $ doc { here = Sized x (ez :*: es)},br),sdoc)
+>   = pure (lz :<: (Sized whd $ doc { here = Sized x (ez :*: es)},br),sdoc)
 > inDoc _ = m0
 
 > leftDoc :: Trans EditDoc
 > leftDoc (lz,Sized whd doc)
 >   | Sized hwhd (ez :<: e :*: es) <- here doc
->   = eta (lz,Sized whd $ doc { here = Sized hwhd (ez :*: e :>: es) })
+>   = pure (lz,Sized whd $ doc { here = Sized hwhd (ez :*: e :>: es) })
 > leftDoc _ = m0
 
 > rightDoc :: Trans EditDoc
 > rightDoc (lz,Sized whd doc)
 >   | Sized hwhd (ez :*: e :>: es) <- here doc
->   = eta (lz,Sized whd $ doc { here = Sized hwhd (ez :<: e :*: es) })
+>   = pure (lz,Sized whd $ doc { here = Sized hwhd (ez :<: e :*: es) })
 > rightDoc _ = m0
 
 > upDoc :: Trans EditDoc
 > upDoc (lz,Sized whd Doc 
 >   { above = uz :<: Sized uwhd uez
 >   , here  = Sized hwhd (ez :*: es)
->   , below = ds }) = eta (lz,Sized whd Doc
+>   , below = ds }) = pure (lz,Sized whd Doc
 >   { above = uz
 >   , here = Sized uwhd (uez :*: nil)
 >   , below = Sized hwhd (ez <>> es) :>: ds })
@@ -328,7 +328,7 @@
 > downDoc (lz,Sized whd Doc 
 >   { above = uz
 >   , here = Sized hwhd (ez :*: es)
->   , below = Sized dwhd des :>: ds }) = eta (lz,Sized whd Doc
+>   , below = Sized dwhd des :>: ds }) = pure (lz,Sized whd Doc
 >   { above = uz :<: Sized hwhd (ez <>< es)
 >   , here  = Sized dwhd (Zip :*: des)
 >   , below = ds })
@@ -360,8 +360,8 @@ Symbols
 
 (base-funnel "Symbol")
 
-> instance Fun f => Funnel f Symbol (f Symbol) where
->   fun    = eta
+> instance Applicative f => Funnel f Symbol (f Symbol) where
+>   fun    = pure
 >   funnel = id
 
 > speshAList :: [(String,Symbol)]
@@ -413,8 +413,8 @@ Character classifications
 
 (base-funnel "CharCl")
 
-> instance Fun f => Funnel f CharCl (f CharCl) where
->   fun    = eta
+> instance Applicative f => Funnel f CharCl (f CharCl) where
+>   fun    = pure
 >   funnel = id
 
 
@@ -587,7 +587,7 @@ Lexical has a parser
 
 > instance Parse Maybe Item Lexical where
 >   blah = pT blk where
->     blk (Block x) = eta x
+>     blk (Block x) = pure x
 >     blk _         = m0
 
 

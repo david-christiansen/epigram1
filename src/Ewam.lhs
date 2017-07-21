@@ -53,8 +53,8 @@ A tactic returns a bunch of subgoals, and a term over the original params
 >   track ("COOKED: " ++ show delVaCooked ++ " |- " ++ show gyCooked) $
 >     return ()
 >   delVaCleared <- return $ clear (nodep gyCooked <!> clears) delVaCooked
->   let moDel  = eta fst <$> delVaCleared
->   let elArgz = eta snd <$> delVaCleared
+>   let moDel  = pure fst <*> delVaCleared
+>   let elArgz = pure snd <*> delVaCleared
 >   let motive = (theta <+> moDel) |- gyCooked
 >   track ("EWAM: " ++ show motive) $ return ()
 >   let methTz = story (LStory nP (report motive)) <%> rawMethTz
@@ -84,7 +84,7 @@ A tactic returns a bunch of subgoals, and a term over the original params
 >     cook fixed delVaz bull ((q,r) :>: qrs) gy
 >       | q'@(_ :=: _ :=: (_,_ ::: qt)) <- bull <%> q =
 >       do TF (JMEq (s ::: sy) (TElim (Var (F nom)) Zip ::: ty)) <- return qt
->          Must True <- equalIn (fixed <+> (eta fst <$> delVaz)) star sy ty
+>          Must True <- equalIn (fixed <+> (pure fst <*> delVaz)) star sy ty
 >          (delVaz',bull') <- boil nom s delVaz
 >          cook fixed delVaz' (bull' <+> bull) qrs gy
 >       <+>
@@ -185,7 +185,7 @@ A tactic returns a bunch of subgoals, and a term over the original params
      dontNeed :: LName -> Bulletin -> Params -> Refine Params
      dontNeed _ _ Zip = doo m0
      dontNeed nom b (del :<: (nam :=: _)) | nom == nam = return del
-     dontNeed nom b (del :<: p) = eta (:<: b <%> p) <$> dontNeed nom b del
+     dontNeed nom b (del :<: p) = pure (:<: b <%> p) <*> dontNeed nom b del
      nodep :: Term -> LName -> [LName]
      nodep ty nom | Might True <- dep [nom] ty = []
      nodep _ nom = [nom]
@@ -232,8 +232,8 @@ A tactic returns a bunch of subgoals, and a term over the original params
 >       <- qt
 >     , Might False <- dep [qn] moo <+> dep [qn] gy
 >     = do e <- if u1 == u2
->            then eta (JMCon . Just . parTy) <$> seekUName u1
->            else eta (JMCon Nothing)
+>            then pure (JMCon . Just . parTy) <*> seekUName u1
+>            else pure (JMCon Nothing)
 >          let etty = (qv ::: qt) @@ e
 >          ewam m0 etty [qn] goal
 >     | otherwise = boom moo

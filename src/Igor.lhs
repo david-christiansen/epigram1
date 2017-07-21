@@ -450,7 +450,7 @@ Refinement
 >              Updatable a,Reportable a,Show a,Apply a Param,Problem q a) =>
 >              String -> q -> Refine a
 > compute s q = do
->   eta snd <$> (public s Zip $ await (Compute,QTerm) q)
+>   pure snd <*> (public s Zip $ await (Compute,QTerm) q)
 
 > tidy :: Ctxt -> Ctxt
 > tidy (lz :<: Layer _ _ _ (Prob (Solved _) (Compute,_) _) _) = lz
@@ -550,10 +550,10 @@ Ambulando
 >       nudge _             s          q' = s
 
 > instance Updatable Entry where
->   upd bull (Name root ent im) = eta (Name root) <$> upd bull ent <$> eta im
->   upd bull (News bull') = eta (News (bull <+> bull'))
->   upd bull Swoon = eta Swoon
->   upd bull RefMark = eta RefMark
+>   upd bull (Name root ent im) = pure (Name root) <*> upd bull ent <*> pure im
+>   upd bull (News bull') = pure (News (bull <+> bull'))
+>   upd bull Swoon = pure Swoon
+>   upd bull RefMark = pure RefMark
 
 > propagator :: Bulletin -> List Entry -> Mod (List Entry,Bulletin)
 > propagator bull (Tip _) = return (nil,bull)
@@ -568,8 +568,8 @@ Ambulando
 
 > instance Updatable Entity where
 >   upd bull (Object o) = {-# SCC "updEntityObject" #-}
->     eta Object <$> upd bull o
->   upd bull (Hoping u del t) = eta (Hoping u) <$> upd bull del <$> upd bull t
+>     pure Object <*> upd bull o
+>   upd bull (Hoping u del t) = pure (Hoping u) <*> upd bull del <*> upd bull t
 >   upd bull (Waiting del es p) = do
 >     del' <- upd bull del
 >     (es',bull') <- propa bull es
@@ -851,13 +851,13 @@ Get the type of that var
 >     varType nom del <+> varType nom ez
 
 > instance Context Param where
->   varType nom (nam :=: o) = when (nam == nom) (eta (obTy o))
+>   varType nom (nam :=: o) = when (nam == nom) (pure (obTy o))
 
 > instance Context Entry where
 >   varType nom (Name (nam,_) ent _) | nom == nam = case ent of
->       Object o -> eta (obTy o)
->       Waiting del _ (Prob _ _ q) -> eta $ up (up pify) del |- probType q
->       Hoping u del t -> eta $ up (up pify) del |- t
+>       Object o -> pure (obTy o)
+>       Waiting del _ (Prob _ _ q) -> pure $ up (up pify) del |- probType q
+>       Hoping u del t -> pure $ up (up pify) del |- t
 >   varType _ _ = m0
 
 
@@ -868,10 +868,10 @@ Get the UName of that var
 > varUName :: LName -> Ctxt -> Rightmost UName
 > varUName nom lz = lay <!> lz where
 >   lay (Layer (nam,_) del (ez :*: _) _ _) = parm <!> del <+> entr <!> ez
->   parm (nam :=: unom :=: _) | nom == nam = eta unom
+>   parm (nam :=: unom :=: _) | nom == nam = pure unom
 >   parm _ = m0
 >   entr (Name (nam,_) ent _) | nom == nam = case ent of
->     Object (unom :=: _) -> eta unom
+>     Object (unom :=: _) -> pure unom
 >     _ -> m0
 >   entr _ = m0
 
@@ -883,10 +883,10 @@ Get the Obj of that var
 > varObj :: LName -> Ctxt -> Rightmost Object
 > varObj nom lz = lay <!> lz where
 >   lay (Layer (nam,_) del (ez :*: _) _ _) = parm <!> del <+> entr <!> ez
->   parm (nam :=: o@(unom :=: _)) | nom == nam = eta o
+>   parm (nam :=: o@(unom :=: _)) | nom == nam = pure o
 >   parm _ = m0
 >   entr (Name (nam,_) ent _) | nom == nam = case ent of
->     Object o -> eta o
+>     Object o -> pure o
 >     _ -> m0
 >   entr _ = m0
 

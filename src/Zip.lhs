@@ -27,8 +27,8 @@ Zip
 
 (base-funnel "(Zip s)")
 
-> instance Fun f => Funnel f (Zip s) (f (Zip s)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Zip s) (f (Zip s)) where
+>   fun    = pure
 >   funnel = id
 
 > instance Monoidal (Zip s) where
@@ -82,8 +82,8 @@ Tip, List
 
 (base-funnel "(Tip t s)")
 
-> instance Fun f => Funnel f (Tip t s) (f (Tip t s)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Tip t s) (f (Tip t s)) where
+>   fun    = pure
 >   funnel = id
 
 
@@ -189,15 +189,15 @@ Search in a list
 Fun instances
 ******************************************************************************
 
-> instance Fun Zip where
->   (fz :<: f) <$> (sz :<: s) = fz <$> sz :<: f s
->   _          <$> _          = Zip
->   eta x = eta x :<: x
+> instance Applicative Zip where
+>   (fz :<: f) <*> (sz :<: s) = (fz <*> sz) :<: f s
+>   _          <*> _          = Zip
+>   pure x = pure x :<: x
 
-> instance Fun List where
->   (f :>: fs) <$> (s :>: ss) = f s :>: fs <$> ss
->   _          <$> _          = nil
->   eta x = x :>: eta x
+> instance Applicative List where
+>   (f :>: fs) <*> (s :>: ss) = f s :>: (fs <*> ss)
+>   _          <*> _          = nil
+>   pure x = x :>: pure x
 
 
 ******************************************************************************
@@ -212,8 +212,8 @@ Lookup operations
 
 (base-funnel "(x :=: t)")
 
-> instance Fun f => Funnel f (x :=: t) (f (x :=: t)) where
->   fun    = eta
+> instance Applicative f => Funnel f (x :=: t) (f (x :=: t)) where
+>   fun    = pure
 >   funnel = id
 
 > instance Functorial ((:=:) x) where
@@ -222,8 +222,8 @@ Lookup operations
 > instance Eq x => Eq (x :=: t) where
 >   (x :=: _) == (y :=: _) = x == y
 
-> isIt :: (Fun f,Monoidal (f t),Eq x) => x -> (x :=: t) -> f t
-> isIt x (x' :=: t) = when (x == x') (eta t)
+> isIt :: (Applicative f,Monoidal (f t),Eq x) => x -> (x :=: t) -> f t
+> isIt x (x' :=: t) = when (x == x') (pure t)
 
 > zAssoc :: Eq p => Zip (p :=: t) -> p -> Rightmost t
 > zAssoc ptz p = isIt p <!> ptz
@@ -255,18 +255,18 @@ Cursors
 
 > type Cursor = Cross Zip List
 
-> instance Show x => Show (Cursor x) where
+> instance {-# OVERLAPPING #-} Show x => Show (Cursor x) where
 >   show (xz :*: xs) = show xz ++ ":*:\n" ++ show xs
 
 > cur0 :: Cursor x
 > cur0 = Zip :*: nil
 
 > curUp :: Trans (Cursor x)
-> curUp (xz :<: y :*: zs) = eta (xz :*: y :>: zs)
+> curUp (xz :<: y :*: zs) = pure (xz :*: y :>: zs)
 > curUp _ = m0
 
 > curDown :: Trans (Cursor x)
-> curDown (xz :*: y :>: zs) = eta (xz :<: y :*: zs)
+> curDown (xz :*: y :>: zs) = pure (xz :<: y :*: zs)
 > curDown _ = m0
 
 > curList :: Cursor x -> List x

@@ -55,7 +55,7 @@ initialization
 > initEpigram = Epigram {
 >   epiCtxt = initCtxt,
 >   epiDisplay = Zip,
->   epiUndo = eta initCtxt, -- cyclic
+>   epiUndo = pure initCtxt, -- cyclic
 >   epiEditorWidth = 78,
 >   epiNeedsIgor = True,
 >   epiEventQueue = [],

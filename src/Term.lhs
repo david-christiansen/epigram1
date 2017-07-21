@@ -313,7 +313,7 @@ Epigram's computational behaviour
 >           TBind All dull (Sem (Just s) (const t))
 >     bof _ (JM (JMCon Nothing)) = TBind All dull (Sem (Just star) id)
 >     bof (TF (JMEq (TF (Con _ _ _ az1) ::: _) (TF (Con _ _ _ az2) ::: _)))
->         (JM (JMCon (Just cty))) = injectivity cty (eta (,) <$> az1 <$> az2)
+>         (JM (JMCon (Just cty))) = injectivity cty (pure (,) <*> az1 <*> az2)
 >     bof (TF (JMEq sS tT)) (JM JMSym) = TF (JMEq tT sS)
 
 > instance Apply (Term ::: Term) (JMElim Term) where
@@ -497,7 +497,7 @@ Objects
 > type Param = LName :=: Object
 > type Params = Zip Param
 
-> instance Show Object where
+> instance {-# OVERLAPPING #-}Show Object where
 >   show (unom :=: (ok,tm ::: ty)) = case ok of
 >     ObjWit vis -> def
 >     ObjDefn -> def
@@ -726,61 +726,61 @@ base-funnels
 
 (base-funnel "(Sem d r x)")
 
-> instance Fun f => Funnel f (Sem d r x) (f (Sem d r x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Sem d r x) (f (Sem d r x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(Sym d r x)")
 
-> instance Fun f => Funnel f (Sym d r x) (f (Sym d r x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Sym d r x) (f (Sym d r x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(Tm sc x)")
 
-> instance Fun f => Funnel f (Tm sc x) (f (Tm sc x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Tm sc x) (f (Tm sc x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(TmF t)")
 
-> instance Fun f => Funnel f (TmF t) (f (TmF t)) where
->   fun    = eta
+> instance Applicative f => Funnel f (TmF t) (f (TmF t)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(x ::: y)")
 
-> instance Fun f => Funnel f (x ::: y) (f (x ::: y)) where
->   fun    = eta
+> instance Applicative f => Funnel f (x ::: y) (f (x ::: y)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(Label t)")
 
-> instance Fun f => Funnel f (Label t) (f (Label t)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Label t) (f (Label t)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(Hd sc x)")
 
-> instance Fun f => Funnel f (Hd sc x) (f (Hd sc x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Hd sc x) (f (Hd sc x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(McKP x)")
 
-> instance Fun f => Funnel f (McKP x) (f (McKP x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (McKP x) (f (McKP x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(Elim t)")
 
-> instance Fun f => Funnel f (Elim t) (f (Elim t)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Elim t) (f (Elim t)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(JMElim t)")
 
-> instance Fun f => Funnel f (JMElim t) (f (JMElim t)) where
->   fun    = eta
+> instance Applicative f => Funnel f (JMElim t) (f (JMElim t)) where
+>   fun    = pure
 >   funnel = id
 

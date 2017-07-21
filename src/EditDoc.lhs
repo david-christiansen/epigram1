@@ -13,7 +13,7 @@
 > import Zip
 > import Parser
 > import Logic
-> import Array
+> import Data.Array
 > import Doc
 > import Igor
 > import Box

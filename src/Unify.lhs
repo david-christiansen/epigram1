@@ -45,7 +45,7 @@ When
 
 > instance Updatable q => Updatable (When q) where
 >   upd bull (When b q)
->     = eta When <$> upd bull b <$> upd bull q
+>     = pure When <*> upd bull b <*> upd bull q
 
 > instance Displayable q => Displayable (When q) where
 >   display ew ctxt (When b q) = display ew ctxt q
@@ -69,7 +69,7 @@ BWhen
 
 > instance Updatable q => Updatable (BWhen q) where
 >   upd bull (BWhen b q)
->     = eta BWhen <$> upd bull b <$> upd bull q
+>     = pure BWhen <*> upd bull b <*> upd bull q
 
 > instance Displayable q => Displayable (BWhen q) where
 >   display ew ctxt (BWhen b q) = display ew ctxt q
@@ -92,7 +92,7 @@ Solve
 > data Solve a q = Solve a q deriving Show
 
 > instance (Updatable a,Updatable q) => Updatable (Solve a q) where
->   upd bull (Solve a q) = eta Solve <$> upd bull a <$> upd bull q
+>   upd bull (Solve a q) = pure Solve <*> upd bull a <*> upd bull q
 
 > instance Displayable q => Displayable (Solve a q) where
 >   display ew ctxt (Solve a q) = display ew ctxt q
@@ -111,7 +111,7 @@ Fail
 > data Fail q = Fail q deriving Show
 
 > instance (Updatable q) => Updatable (Fail q) where
->   upd bull (Fail q) = eta Fail <$> upd bull q
+>   upd bull (Fail q) = pure Fail <*> upd bull q
 
 > instance Displayable q => Displayable (Fail q) where
 >   display ew ctxt (Fail q) = display ew ctxt q
@@ -133,7 +133,7 @@ Declare
 >   display ew ctxt (Declare unom ok _) = box (ok,unom)
 
 > instance Updatable Declare where
->   upd bull (Declare unom ok dom) = eta (Declare unom ok) <$> upd bull dom
+>   upd bull (Declare unom ok dom) = pure (Declare unom ok) <*> upd bull dom
 
 > instance Problem Declare Term where
 >   refine q@(Declare unom@(UN s) ok dom) = do
@@ -157,7 +157,7 @@ Define
 >   display ew ctxt (Define unom _) = box (ObjDefn,unom)
 
 > instance Updatable Define where
->   upd bull (Define unom vt) = eta (Define unom) <$> upd bull vt
+>   upd bull (Define unom vt) = pure (Define unom) <*> upd bull vt
 
 > instance Problem Define Term where
 >   refine q@(Define unom@(UN s) vt) = do
@@ -180,7 +180,7 @@ Clear
 > instance Displayable Clear
 
 > instance Updatable Clear where
->   upd bull (Clear t) = eta Clear <$> upd bull t
+>   upd bull (Clear t) = pure Clear <*> upd bull t
 
 > instance Problem Clear (Boole LName) where
 >   refine q@(Clear t) | Might False == unclear t =
@@ -200,7 +200,7 @@ UnifyIn
 
 > instance Updatable UnifyIn where
 >   upd bull (UnifyIn y s t) =
->     eta UnifyIn <$> upd bull y <$> upd bull s <$> upd bull t
+>     pure UnifyIn <*> upd bull y <*> upd bull s <*> upd bull t
 
 > instance Problem UnifyIn (Boole LName) where
 >   refine q@(UnifyIn y s t) =
@@ -308,7 +308,7 @@ UnifyIn
 >   case b of
 >     BVal True -> do
 >       u1 <- compute "u" (UnifyIn xdom x y)
->       eta (u1 <+>) <$> argsUnify u1 (xran x) (xran y) xs ys
+>       pure (u1 <+>) <*> argsUnify u1 (xran x) (xran y) xs ys
 >     _ -> do
 >       u1 <- compute "u" (HetUnify b (x ::: xdom) (y ::: ydom))
 >       u2 <- argsUnify u1 (xran x) (yran y) xs ys
@@ -385,7 +385,7 @@ I strongly suspect the following of dodginess...
 >   , track "Bong!" $ True
 >   , hooray <- story (LStory x (report (phi |- phit))) <+> rbull
 >   = return $
->       lz :<: Layer root del (ez :*: res <+> News hooray :>: es) prob im
+>       lz :<: Layer root del (ez :*: (res <+> News hooray :>: es)) prob im
 > solveFor (res,rbull) (psi,((x,xez),psit ::: ty))
 >   (lz :<: Layer root del (ez :<: Name (nom,_) (Hoping _ phi _) _ :*: es)
 >                 prob im)
@@ -466,7 +466,7 @@ HetUnify
 
 > instance Updatable HetUnify where
 >   upd bull (HetUnify gd sS tT) =
->     eta HetUnify <$> upd bull gd <$> upd bull sS <$> upd bull tT
+>     pure HetUnify <*> upd bull gd <*> upd bull sS <*> upd bull tT
 
 > instance Problem HetUnify (Boole LName) where
 >   refine (HetUnify (BVal False) _ _) =
@@ -489,7 +489,7 @@ KnotRec
 > instance Displayable KnotRec
 
 > instance Updatable KnotRec where
->   upd bull (KnotRec tty) = eta KnotRec <$> upd bull tty
+>   upd bull (KnotRec tty) = pure KnotRec <*> upd bull tty
 
 > instance Problem KnotRec Term where
 >   probType (KnotRec (_ ::: ty)) = ty
@@ -541,7 +541,7 @@ SpotRec
 > instance Displayable SpotRec
 
 > instance Updatable SpotRec where
->   upd bull (SpotRec t) = eta SpotRec <$> upd bull t
+>   upd bull (SpotRec t) = pure SpotRec <*> upd bull t
 
 > instance Problem SpotRec Term where
 >   probType (SpotRec (lab ::: ty)) = TF (Lbl LabTy lab ty)
@@ -578,7 +578,7 @@ SpotRec
 > instance Displayable NotBot
 
 > instance Updatable NotBot where
->   upd bull (NotBot t y) = eta NotBot <$> upd bull t <$> upd bull y
+>   upd bull (NotBot t y) = pure NotBot <*> upd bull t <*> upd bull y
 
 > instance Problem NotBot Term where
 >   probType (NotBot t y) = y
@@ -591,7 +591,7 @@ SpotRec
 > instance Displayable Candidates
 
 > instance Updatable Candidates where
->   upd bull (Candidates cz y) = eta Candidates <$> upd bull cz <$> upd bull y
+>   upd bull (Candidates cz y) = pure Candidates <*> upd bull cz <*> upd bull y
 
 > instance Problem Candidates Term where
 >   probType (Candidates _ y) = y
@@ -616,7 +616,7 @@ SpotRec
 
 > instance Updatable Blunderbuss where
 >   upd bull (Blunderbuss tty y) =
->     eta Blunderbuss <$> upd bull tty <$> upd bull y
+>     pure Blunderbuss <*> upd bull tty <*> upd bull y
 
 > instance Problem Blunderbuss Term where
 >   probType (Blunderbuss _ y) = y
@@ -662,7 +662,7 @@ SpotRec
 
 > instance Updatable CondCand where
 >   upd bull (CondCand b t y) =
->     eta CondCand <$> upd bull b <$> upd bull t <$> upd bull y
+>     pure CondCand <*> upd bull b <*> upd bull t <*> upd bull y
 
 > instance Problem CondCand Term where
 >   probType (CondCand _ _ y) = y

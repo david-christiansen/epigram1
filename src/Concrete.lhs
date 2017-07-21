@@ -100,113 +100,113 @@ Parsers
 ******************************************************************************
 
 > instance Parse Maybe Item (Zip (CHead Lexical)) where
->   blah = eta zippy <$> pSeq1 blah pE
+>   blah = pure zippy <*> pSeq1 blah pE
 
 > instance Parse Maybe Item (CTerm Lexical) where
->   blah = eta (flip ($)) <$> blah <$>
->            (eta (flip CCast) </> iP (pF COLON) <$> blah <+>
->             eta (flip CArrow) </> iP (pF ARROW) <$> blah <+>
->             eta (flip CWedge) </> iP (pF WEDGE) <$> blah <+>
->             eta (flip CEquals) </> iP (pF EQUALS) <$> blah <+>
->             eta CApp)
->      <+> eta CBind <$> blah <$> blah </> iPP (pF RET) <$> blah
->      <+> eta CElim <$> blah <$> blah
->      <+> eta CArrow <$> blah </> iP (pF ARROW) <$> blah
->      <+> eta CWedge <$> blah </> iP (pF WEDGE) <$> blah
->      <+> eta CEquals <$> blah </> iP (pF EQUALS) <$> blah
+>   blah = pure (flip ($)) <*> blah <*>
+>            (pure (flip CCast) </> iP (pF COLON) <*> blah <+>
+>             pure (flip CArrow) </> iP (pF ARROW) <*> blah <+>
+>             pure (flip CWedge) </> iP (pF WEDGE) <*> blah <+>
+>             pure (flip CEquals) </> iP (pF EQUALS) <*> blah <+>
+>             pure CApp)
+>      <+> pure CBind <*> blah <*> blah </> iPP (pF RET) <*> blah
+>      <+> pure CElim <*> blah <*> blah
+>      <+> pure CArrow <*> blah </> iP (pF ARROW) <*> blah
+>      <+> pure CWedge <*> blah </> iP (pF WEDGE) <*> blah
+>      <+> pure CEquals <*> blah </> iP (pF EQUALS) <*> blah
 
 > realHead :: Parser Maybe Item (CHead Lexical)
-> realHead = eta (CVar Black) <$> blah
->        <+> eta CStar </> pF STAR
->        <+> eta CQM </> pF QM
->        <+> eta CUnder </> pF UNDER
->        <+> eta CZero </> pF ZERO
->        <+> eta COne </> pF ONE
->        <+> eta CRefl </> pF REFL
->        <+> iGroup (eta CTuple <$> pSeq0 blah iLFs)
+> realHead = pure (CVar Black) <*> blah
+>        <+> pure CStar </> pF STAR
+>        <+> pure CQM </> pF QM
+>        <+> pure CUnder </> pF UNDER
+>        <+> pure CZero </> pF ZERO
+>        <+> pure COne </> pF ONE
+>        <+> pure CRefl </> pF REFL
+>        <+> iGroup (pure CTuple <*> pSeq0 blah iLFs)
 
 > instance Parse Maybe Item (CHead Lexical) where
 >   blah = realHead
->      <+> eta CTermoid <$> blah
+>      <+> pure CTermoid <*> blah
 
 > instance Parse Maybe Item (CSigs Lexical) where
->   blah = eta sigon <$> sigone </> iSkip <$> blah
->      <+> eta CEmpty
+>   blah = pure sigon <*> sigone </> iSkip <*> blah
+>      <+> pure CEmpty
 >     where
->       sigone = eta CSig <$> blah
->            <+> eta CSigsoid <$> blah
+>       sigone = pure CSig <*> blah
+>            <+> pure CSigsoid <*> blah
 >       sigon ss1 CEmpty = ss1
 >       sigon ss1 ss2    = CSigs ss1 ss2
 
 > instance Parse Maybe Item (CSig Lexical) where
->    blah = eta CSimple <$> pSeq1 blah (pF COMMA)
->                       <$> pMay (iPP (pF COLON) <\> blah)
->       <+> iGroup (eta CRule <$> iPP blah </> iP (pF RULE) <$>
->                     blah  </> iPP (pF COLON) <$> blah)
+>    blah = pure CSimple <*> pSeq1 blah (pF COMMA)
+>                       <*> pMay (iPP (pF COLON) <\> blah)
+>       <+> iGroup (pure CRule <*> iPP blah </> iP (pF RULE) <*>
+>                     blah  </> iPP (pF COLON) <*> blah)
 
 > instance Parse Maybe Item (CCncl Lexical) where
->    blah = eta (CCncl . zippy) <$> pSeq1 blah pE
->       <+> eta CCncloid <$> blah
+>    blah = pure (CCncl . zippy) <*> pSeq1 blah pE
+>       <+> pure CCncloid <*> blah
 
 > instance Parse Maybe Item CParam where
->    blah = eta (CParam False UnifV) </> pF UNDER <$> blah
->       <+> eta (CParam False NormV) <$> blah
+>    blah = pure (CParam False UnifV) </> pF UNDER <*> blah
+>       <+> pure (CParam False NormV) <*> blah
 
 > pFileName :: Parser Maybe Item String
-> pFileName = eta "" </> iLFs
->         <+> eta (++) <$> pT toktext <$> pFileName
+> pFileName = pure "" </> iLFs
+>         <+> pure (++) <*> pT toktext <*> pFileName
 >         where toktext (I s) = return (show s)
 >               toktext _     = m0
 
 > instance Parse Maybe Item (CDecl Lexical) where
->   blah = eta (CData Nothing) </> iP (pF DATA) 
->            <$> blah </> iPP (pF WHERE) <$> blah
->      <+> eta CLet </> iP (pF LET)
->          <$> (eta CSig <$> blah <+> eta CSigsoid <$> blah)
->          </> iLFs <$> pMay blah
->      <+> eta (CInspect Nothing) </> iP (pF INSPECT)
->            <$> blah </> pSkipTo (I RULE)
->      <+> eta CSourcoid <$> blah
->      <+> iP (pF DATA) <\> eta
+>   blah = pure (CData Nothing) </> iP (pF DATA) 
+>            <*> blah </> iPP (pF WHERE) <*> blah
+>      <+> pure CLet </> iP (pF LET)
+>          <*> (pure CSig <*> blah <+> pure CSigsoid <*> blah)
+>          </> iLFs <*> pMay blah
+>      <+> pure (CInspect Nothing) </> iP (pF INSPECT)
+>            <*> blah </> pSkipTo (I RULE)
+>      <+> pure CSourcoid <*> blah
+>      <+> iP (pF DATA) <\> pure
 >           (CData Nothing (CSig (CRule (CSigsoid emptyEDoc)
 >                                       (CCncloid emptyEDoc)
 >                                       (CApp (Zip :<: CStar))))
 >                          (CSigsoid emptyEDoc))
->      <+> iP (pF LET) <\> eta
+>      <+> iP (pF LET) <\> pure
 >           (CLet (CSig (CRule (CSigsoid emptyEDoc)
 >                              (CCncloid emptyEDoc)
 >                              (CApp (Zip :<: CTermoid emptyEDoc))))
 >                 Nothing)
->      <+> iP (pF INSPECT) <\> eta (CInspect Nothing
+>      <+> iP (pF INSPECT) <\> pure (CInspect Nothing
 >                                 (CApp (Zip :<: (CTermoid emptyEDoc))))
->      <+> eta CInclude </> iP (pF INCLUDE) <$> pFileName
->      <+> eta CBegin </> iP (pF BEGIN) <$> pFileName
->      <+> eta CEnd </> iP (pF END) <$> pFileName
+>      <+> pure CInclude </> iP (pF INCLUDE) <*> pFileName
+>      <+> pure CBegin </> iP (pF BEGIN) <*> pFileName
+>      <+> pure CEnd </> iP (pF END) <*> pFileName
 
 > instance Parse Maybe Item (CProg Lexical) where
->   blah = eta CProg <$> blah </> iSkip
->                    <$> pSeq1 blah iSkip <$> (eta Just <$> blah)
->      <+> eta CProgoid <$> blah
+>   blah = pure CProg <*> blah </> iSkip
+>                     <*> pSeq1 blah iSkip <*> (pure Just <*> blah)
+>      <+> pure CProgoid <*> blah
 
 > instance Parse Maybe Item (CLhs Lexical) where
->   blah = eta CLhs <$> (eta zippy <$> pSeq1 realHead pE)
->                   <$> (eta zippy <$> pSeq0 (pF BAR <\> blah) pE)
+>   blah = pure CLhs <*> (pure zippy <*> pSeq1 realHead pE)
+>                    <*> (pure zippy <*> pSeq0 (pF BAR <\> blah) pE)
 
 > instance Parse Maybe Item (CRhs Lexical) where
->   blah = eta CBy </> iP (pF BY) <$> blah
->      <+> eta CWith </> iP (pF WITH) <$> blah
->      <+> eta CFrom </> iP (pF FROM) <$> pSeq1 blah pE
->      <+> eta CRet </> iP (pF RET) <$> blah
->      <+> eta CRhssoid <$> blah
+>   blah = pure CBy </> iP (pF BY) <*> blah
+>      <+> pure CWith </> iP (pF WITH) <*> blah
+>      <+> pure CFrom </> iP (pF FROM) <*> pSeq1 blah pE
+>      <+> pure CRet </> iP (pF RET) <*> blah
+>      <+> pure CRhssoid <*> blah
 
 > instance Parse Maybe Item (CProgs Lexical) where
->   blah = eta CProgs </> iPP (pF LBRACE) <$>
->            pSeq0 blah iLFs </> iSkip </> pF RBRACE
->      <+> eta (CProgs [])
+>   blah = (pure CProgs </> iPP (pF LBRACE) <*>
+>            pSeq0 blah iLFs </> iSkip </> pF RBRACE)
+>      <+> pure (CProgs [])
 
 > instance Parse Maybe Item UName where
 >   blah = pT f where
->     f (I (ID x)) = eta (UN x)
+>     f (I (ID x)) = pure (UN x)
 >     f _          = m0
 
 > instance Parse Maybe Item Bind where
@@ -217,8 +217,8 @@ Parsers
 
 > sourceParser :: Parser Maybe Item [CDecl Lexical]
 > sourceParser = iP (pF RULE) <\> sourceParser
->            <+> eta (:) <$> iP blah <$> sourceParser
->            <+> eta []
+>            <+> (pure (:) <*> iP blah <*> sourceParser)
+>            <+> pure []
 
 
 
@@ -377,68 +377,68 @@ base-funnels
 
 (base-funnel "(CTerm x)")
 
-> instance Fun f => Funnel f (CTerm x) (f (CTerm x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (CTerm x) (f (CTerm x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(CHead x)")
 
-> instance Fun f => Funnel f (CHead x) (f (CHead x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (CHead x) (f (CHead x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(CSigs x)")
 
-> instance Fun f => Funnel f (CSigs x) (f (CSigs x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (CSigs x) (f (CSigs x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(CSig x)")
 
-> instance Fun f => Funnel f (CSig x) (f (CSig x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (CSig x) (f (CSig x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(CCncl x)")
 
-> instance Fun f => Funnel f (CCncl x) (f (CCncl x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (CCncl x) (f (CCncl x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "CParam")
 
-> instance Fun f => Funnel f CParam (f CParam) where
->   fun    = eta
+> instance Applicative f => Funnel f CParam (f CParam) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(CDecl x)")
 
-> instance Fun f => Funnel f (CDecl x) (f (CDecl x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (CDecl x) (f (CDecl x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(CProg x)")
 
-> instance Fun f => Funnel f (CProg x) (f (CProg x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (CProg x) (f (CProg x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(CLhs x)")
 
-> instance Fun f => Funnel f (CLhs x) (f (CLhs x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (CLhs x) (f (CLhs x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(CRhs x)")
 
-> instance Fun f => Funnel f (CRhs x) (f (CRhs x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (CRhs x) (f (CRhs x)) where
+>   fun    = pure
 >   funnel = id
 
 (base-funnel "(CProgs x)")
 
-> instance Fun f => Funnel f (CProgs x) (f (CProgs x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (CProgs x) (f (CProgs x)) where
+>   fun    = pure
 >   funnel = id
 
 

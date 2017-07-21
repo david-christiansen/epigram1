@@ -63,10 +63,6 @@ Maybe
 
 (monad-fun "Maybe")
 
-> instance Fun Maybe where
->   eta   = return
->   (<$>) = monadDollar
-
 > instance Monoidal (Maybe x) where
 >   m0 = Nothing
 >   Nothing    <+> x = x
@@ -86,7 +82,7 @@ Maybe
 Rightmost
 ******************************************************************************
 
-> data Rightmost x = Rightmost x | Missing
+> data Rightmost x = Rightmost x | Missing deriving Functor
 
 > instance Monad Rightmost where
 >   return = Rightmost
@@ -105,16 +101,16 @@ Rightmost
 
 (base-funnel "(Rightmost x)")
 
-> instance Fun f => Funnel f (Rightmost x) (f (Rightmost x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Rightmost x) (f (Rightmost x)) where
+>   fun    = pure
 >   funnel = id
 
 
 (monad-fun "Rightmost")
 
-> instance Fun Rightmost where
->   eta   = return
->   (<$>) = monadDollar
+> instance Applicative Rightmost where
+>   pure    = return
+>   (<*>)   = monadDollar
 
 
 > replacement :: x -> Rightmost x -> x
@@ -172,8 +168,19 @@ Statey things
 >   un = unState
 >   nu = State
 
+> instance Functor f => Functor (State f s) where
+>   fmap f (State g) = State $ \ st -> fmap (\(x, st') -> (f x, st')) (g st)
+
+> instance Monad f => Applicative (State f s) where
+>   pure a = State $ \ s -> pure (a,s)
+>   State f <*> State x
+>     = State $ \ s ->
+>         do (f', s') <- f s
+>            (x', s'') <- x s'
+>            pure (f' x', s'')
+
 > instance Monad m => Monad (State m s) where
->   return a = State $ \ s -> return (a,s)
+>   return a = pure a
 >   State f >>= g
 >     = State $ \ s ->
 >         do (a,s') <- f s
@@ -223,16 +230,12 @@ Statey things
 > sequentially :: (Functorial g,Monoidal y,Monad m) =>
 >   (x -> State m s y) -> g x -> State m s y
 > sequentially f gx = noitca step (return m0) gx where
->   step s x = eta (<+>) <$> s <$> f x
-
-> instance Monad m => Fun (State m s) where
->   eta = return
->   (<$>) = monadDollar
+>   step s x = pure (<+>) <*> s <*> f x
 
 (base-funnel "(State m s a)")
 
-> instance Fun f => Funnel f (State m s a) (f (State m s a)) where
->   fun    = eta
+> instance Applicative f => Funnel f (State m s a) (f (State m s a)) where
+>   fun    = pure
 >   funnel = id
 
 

@@ -93,8 +93,8 @@ Box and Stuff
 
 (base-funnel "(Box x)")
 
-> instance Fun f => Funnel f (Box x) (f (Box x)) where
->   fun    = eta
+> instance Applicative f => Funnel f (Box x) (f (Box x)) where
+>   fun    = pure
 >   funnel = id
 
 > instance Wide (Box x) where
@@ -165,7 +165,7 @@ Rendering boxes
 > boxText :: Face -> Box String -> Cursor [TextElt]
 > boxText f (Box _ _ (Stuff s)) = Zip :*: text s f :>: nil
 > boxText f (Box (w,(h,d)) _ Blank)
->   = zCrop h (eta (blank w f)) :*: lCrop d (eta (blank w f))
+>   = zCrop h (pure (blank w f)) :*: lCrop d (pure (blank w f))
 > boxText f (Box s d (ReFace g x)) = boxText (f <+> g) (Box s d x)
 > boxText _ (Box s d (DeFace x)) = boxText m0 (Box s d x)
 > boxText f (Box s d (Tag nom x)) = boxText f (Box s d x)
@@ -184,25 +184,25 @@ Rendering boxes
 >   = zz1 :*: (ss1 <+> (zz2 <>> ss2))
 > boxText f (Box (_,(0,d)) _ (Glyph (GOpen br)))
 >   = Zip :*: text (show (Open br)) f
->         :>: lCrop (d - 1) (eta (text (show Tab) f))
+>         :>: lCrop (d - 1) (pure (text (show Tab) f))
 > boxText f (Box (_,(h,d)) _ (Glyph (GOpen br)))
 >   = ((Zip :<: text (show (Open br)) f)
->      <+> zCrop (h - 1) (eta (text (show Tab) f)))
->     :*: lCrop d (eta (text (show Tab) f))
+>      <+> zCrop (h - 1) (pure (text (show Tab) f)))
+>     :*: lCrop d (pure (text (show Tab) f))
 > boxText f (Box (_,(h,d)) _ (Glyph (GClose br)))
->   = zCrop h (eta (text (show Tab) f)) :*:
->     lCrop (d - 1) (eta (text (show Tab) f)) <+>
->     text (show (Close br)) f :>: nil
+>   = zCrop h (pure (text (show Tab) f)) :*:
+>     (lCrop (d - 1) (pure (text (show Tab) f)) <+>
+>      (text (show (Close br)) f :>: nil))
 > boxText f (Box (w,_) _ (Glyph GRule))
 >   = Zip :*: text (copies w '-') f :>: nil
 > boxText f (Box (w,(h,d)) _ (Glyph GLBrace))
->   | h > 0 = (Zip :<: br <+> zCrop (h - 1) (eta bl)) :*: lCrop d (eta bl)
->   | otherwise = Zip :*: br :>: lCrop (d - 1) (eta bl)
+>   | h > 0 = (Zip :<: br <+> zCrop (h - 1) (pure bl)) :*: lCrop d (pure bl)
+>   | otherwise = Zip :*: br :>: lCrop (d - 1) (pure bl)
 >   where br = text "{" f <+> blank (w - 1) f
 >         bl = blank w f
 > boxText f (Box (w,(h,d)) _ (Glyph GRBrace))
->   | d > 0 = zCrop h (eta bl) :*: (lCrop (d - 1) (eta bl) <+> br :>: nil)
->   | otherwise = zCrop (h - 1) (eta bl) :<: br :*: nil
+>   | d > 0 = zCrop h (pure bl) :*: (lCrop (d - 1) (pure bl) <+> br :>: nil)
+>   | otherwise = zCrop (h - 1) (pure bl) :<: br :*: nil
 >   where br = blank (w - 1) f <+> text "}" f
 >         bl = blank w f
 
@@ -255,8 +255,8 @@ We work with streams of boxes which satisfy the invariants that
 
 (base-funnel "Boxings")
 
-> instance Fun f => Funnel f Boxings (f Boxings) where
->   fun    = eta
+> instance Applicative f => Funnel f Boxings (f Boxings) where
+>   fun    = pure
 >   funnel = id
 
  instance ReFace Boxings where
@@ -332,7 +332,7 @@ Coordinates are box coordinates (ie 0 is h lines down).
 >   | x < 0 || x >= w || y < -h || (y >= d && nobel)
 >   = m0
 > clickTag xy@(x,y) nobel (Box (w,(h,d)) _ z) = clk z where
->   clk (Tag nom z) = eta (nom,xy) <+> clk z
+>   clk (Tag nom z) = pure (nom,xy) <+> clk z
 >   clk (ReFace _ z) = clk z
 >   clk (DeFace z) = clk z
 >   clk (ReAlign b@(Box (_,(h',_)) _ _)) = clickTag (x,h + y - h') nobel b
@@ -537,7 +537,9 @@ Displaying
 >   emacsDOIT . epigram . emacs $ ("kill-line" ~$ [EI (h + d)])
 
 > emacsInsert :: BoxS -> IO ()
-> emacsInsert b = emacsDOIT . epigram $ emacs (0 :: Int,un (boxText m0 b))
+> emacsInsert b = emacsDOIT . epigram $ doEmacs (0,un (boxText m0 b))
+>   where doEmacs :: (Int, [[TextElt]]) -> Emacs
+>         doEmacs x = emacs x
 
 > emacsReplace :: BoxS -> BoxS -> IO ()
 > emacsReplace b b' | (_,(h,d)) <- bSize b = chunk (h + d) (un (boxText m0 b'))
@@ -566,7 +568,7 @@ Displaying
 > type NomBox = (String,Int) :=: BoxS
 
 > rendo :: RenderOp -> NomBox -> Render NomBox
-> rendo r sib@(_ :=: b) = tweak (`rsnoc` (r,b)) <\> eta sib where
+> rendo r sib@(_ :=: b) = tweak (`rsnoc` (r,b)) <\> pure sib where
 >   rsnoc (rbz :<: (r1,b1)) (r2,b2) | r1 == r2 = rbz :<: (r1,b1 <+> b2)
 >   rsnoc rbz rb = rbz :<: rb
 

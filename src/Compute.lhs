@@ -34,7 +34,7 @@ FunDomRan
 > data FunDomRan = FunDomRan Term deriving Show
 
 > instance Updatable FunDomRan where
->   upd bull (FunDomRan ft) = eta FunDomRan <$> upd bull ft
+>   upd bull (FunDomRan ft) = pure FunDomRan <*> upd bull ft
 
 > instance Displayable FunDomRan
 
@@ -66,7 +66,7 @@ IWrap
 > instance Displayable IWrap
 
 > instance Updatable IWrap where
->   upd bull (IWrap t) = eta IWrap <$> upd bull t
+>   upd bull (IWrap t) = pure IWrap <*> upd bull t
 
 > instance Problem IWrap Term where
 >   refine (IWrap (TBind All (unom,UnifV) (Sem (Just dom) ran))) = do
@@ -90,7 +90,7 @@ IComplete
 > instance Displayable IComplete
 
 > instance Updatable IComplete where
->   upd bull (IComplete t) = eta IComplete <$> upd bull t
+>   upd bull (IComplete t) = pure IComplete <*> upd bull t
 
 > instance Problem IComplete Term where
 >   refine (IComplete (f :::
@@ -115,7 +115,7 @@ Explicit
 > instance Displayable Explicit
 
 > instance Updatable Explicit where
->   upd bull (Explicit t) = eta Explicit <$> upd bull t
+>   upd bull (Explicit t) = pure Explicit <*> upd bull t
 
 > instance Problem Explicit Term where
 >   refine q@(Explicit (f ::: TBind b (unom,UnifV) (Sem dom ran))) =
@@ -134,7 +134,7 @@ IsFamilyType
 > instance Displayable IsFamilyType
 
 > instance Updatable IsFamilyType where
->   upd bull (IsFamilyType t) = eta IsFamilyType <$> upd bull t
+>   upd bull (IsFamilyType t) = pure IsFamilyType <*> upd bull t
 
 > instance Problem IsFamilyType (Boole LName) where
 >   refine q@(IsFamilyType (TF Star)) =
@@ -158,7 +158,7 @@ IsConstructorType
 
 > instance Updatable IsConstructorType where
 >   upd bull (IsConstructorType ufam t) =
->     eta (IsConstructorType ufam) <$> upd bull t
+>     pure (IsConstructorType ufam) <*> upd bull t
 
 > instance Problem IsConstructorType (Boole LName) where
 >   refine q@(IsConstructorType ufam (TF (Con TypeCon unom _ az)))
@@ -189,7 +189,7 @@ IsConstructorArgType
 
 > instance Updatable IsConstructorArgType where
 >   upd bull (IsConstructorArgType ufam t) =
->     eta (IsConstructorArgType ufam) <$> upd bull t
+>     pure (IsConstructorArgType ufam) <*> upd bull t
 
 > instance Problem IsConstructorArgType (Boole LName) where
 >   refine q@(IsConstructorArgType ufam (TF (Con TypeCon unom _ _)))
@@ -218,7 +218,7 @@ DoesNotMention
 
 > instance Updatable DoesNotMention where
 >   upd bull (DoesNotMention ufam t) =
->     eta (DoesNotMention ufam) <$> upd bull t
+>     pure (DoesNotMention ufam) <*> upd bull t
 
 > instance Problem DoesNotMention (Boole LName) where
 >   refine (DoesNotMention ufam t) | Might True <- unclear t =
@@ -261,7 +261,7 @@ IsEliminatorType
 > instance Displayable IsEliminatorType
 
 > instance Updatable IsEliminatorType where
->   upd bull (IsEliminatorType t) = eta IsEliminatorType <$> upd bull t
+>   upd bull (IsEliminatorType t) = pure IsEliminatorType <*> upd bull t
 
 > instance Problem IsEliminatorType (Boole LName) where
 >   refine (IsEliminatorType t) | Might True <- unclear t =
@@ -286,7 +286,7 @@ IsEliminatorTip
 > instance Displayable IsEliminatorTip
 
 > instance Updatable IsEliminatorTip where
->   upd bull (IsEliminatorTip nom t) = eta (IsEliminatorTip nom) <$> upd bull t
+>   upd bull (IsEliminatorTip nom t) = pure (IsEliminatorTip nom) <*> upd bull t
 
 > instance Problem IsEliminatorTip (Boole LName) where
 >   refine (IsEliminatorTip nom t) | Might True <- unclear t =
@@ -313,7 +313,7 @@ IsMethodType
 > instance Displayable IsMethodType
 
 > instance Updatable IsMethodType where
->   upd bull (IsMethodType nom t) = eta (IsMethodType nom) <$> upd bull t
+>   upd bull (IsMethodType nom t) = pure (IsMethodType nom) <*> upd bull t
 
 > instance Problem IsMethodType (Boole LName) where
 >   refine (IsMethodType nom t) | Might True <- unclear t =
