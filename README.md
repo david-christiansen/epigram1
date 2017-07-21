@@ -15,6 +15,9 @@ It would be convenient to get the interface to work with GNU Emacs
 
 The current version here has not been thoroughly tested
 
+It would be good to get it building with a few more systems in some
+kind of CI as well.
+
 # Installation Instructions
 
 Run `stack build` to compile. Further instructions forthcoming.
