@@ -20,4 +20,4 @@ kind of CI as well.
 
 # Installation Instructions
 
-Run `stack build` to compile. Further instructions forthcoming.
+Run `stack install` to compile and install the Epigram binary, then run the `epigram` script in the project root to launch XEmacs and Epigram.

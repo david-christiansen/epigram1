@@ -4,8 +4,9 @@
 
 ;; emacs is flexible about dir separators in windows, but can't figure 
 ;; out the .exe part which windows has to have
-(setq epigram-executable 
-	(concat epigram-root "/src/Epigram-bin" (getenv "EPIGRAM_EXT")))
+(setq epigram-executable
+      (or (locate-file "Epigram-bin" exec-path '("" ".exe") 1)
+          (concat epigram-root "/src/Epigram-bin" (getenv "EPIGRAM_EXT"))))
 
 (install-epigram)
 (switch-to-buffer epigram-buffer)
